@@ -9,10 +9,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"meatproxy/internal/db"
@@ -152,6 +152,30 @@ func syncAndIndex(ctx context.Context, deep bool) (*sql.DB, error) {
 	return handle, nil
 }
 
+// parseArgs accepts --deep / --limit anywhere in the argument list, plus -n
+// as an alias for --limit, so flags-after-keywords works naturally.
+func parseArgs(args []string, withLimit bool) (deep bool, limit int, keywords []string, err error) {
+	limit = searchLimit
+	for i := 0; i < len(args); i++ {
+		switch a := args[i]; a {
+		case "--deep", "-deep":
+			deep = true
+		case "--limit", "-limit", "-n", "--n":
+			if !withLimit || i+1 >= len(args) {
+				return false, 0, nil, fmt.Errorf("%s requires a number", a)
+			}
+			i++
+			limit, err = strconv.Atoi(args[i])
+			if err != nil || limit < 1 {
+				return false, 0, nil, fmt.Errorf("%s requires a positive number", a)
+			}
+		default:
+			keywords = append(keywords, a)
+		}
+	}
+	return deep, limit, keywords, nil
+}
+
 type matchPick db.Match
 
 func (m matchPick) Label() string {
@@ -193,18 +217,16 @@ func dim(s string) string { return "  " + s } // mono output; kept simple for v0
 
 // cmdList implements `meatproxy list [keywords…]`.
 func cmdList(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("list", flag.ContinueOnError)
-	deep := fs.Bool("deep", false, "block until fully indexed")
-	limit := fs.Int("limit", searchLimit, "max results")
-	if err := fs.Parse(args); err != nil {
+	deep, limit, keywords, err := parseArgs(args, true)
+	if err != nil {
 		return err
 	}
-	handle, err := syncAndIndex(ctx, *deep)
+	handle, err := syncAndIndex(ctx, deep)
 	if err != nil {
 		return err
 	}
 	defer handle.Close()
-	matches, err := db.Search(handle, fs.Args(), *limit)
+	matches, err := db.Search(handle, keywords, limit)
 	if err != nil {
 		return err
 	}
@@ -218,17 +240,16 @@ func cmdList(ctx context.Context, args []string) error {
 
 // cmdOpen implements `meatproxy open [keywords…]`.
 func cmdOpen(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("open", flag.ContinueOnError)
-	deep := fs.Bool("deep", false, "block until fully indexed")
-	if err := fs.Parse(args); err != nil {
+	deep, _, keywords, err := parseArgs(args, false)
+	if err != nil {
 		return err
 	}
-	handle, err := syncAndIndex(ctx, *deep)
+	handle, err := syncAndIndex(ctx, deep)
 	if err != nil {
 		return err
 	}
 	defer handle.Close()
-	matches, err := db.Search(handle, fs.Args(), searchLimit)
+	matches, err := db.Search(handle, keywords, searchLimit)
 	if err != nil {
 		return err
 	}
