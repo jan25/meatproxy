@@ -8,6 +8,10 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #3 — Fix changelog prior-history note (2026-11-27)
+
+- Replace outdated PR range in the prior-history note with a plain description.
+
 ## #2 — Record merged PRs in changelog (2026-11-27)
 
 - Add changelog workflow: every change merges via PR, and each merged PR gets an entry.
@@ -19,4 +23,4 @@ Entries are added when pull requests merge, newest first. Format:
 - Picker re-prompts on invalid input and renders cleanly with piped or interactive input.
 - Rune-safe title truncation; changelog and PR workflow documented in `AGENTS.md`.
 
-Prior history: the initial v0 (PRs #1–#3) shipped the CLI, SQLite/FTS5 session search, worktree-per-feature flow, docs, and the private→public repo change.
+Prior history: the initial v0 was committed before this changelog existed — CLI, SQLite/FTS5 session search, worktree-per-feature flow, docs, and the private→public repo change.
