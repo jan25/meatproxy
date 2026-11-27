@@ -1,0 +1,4 @@
+/meatproxy
+*.test
+*.out
+.worktrees/
