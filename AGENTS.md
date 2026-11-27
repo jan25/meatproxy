@@ -4,6 +4,10 @@
 
 Go CLI wrapper around OpenCode: keyword session search (SQLite FTS5) + worktree-per-feature. v0 targets OpenCode only. Read `DESIGN.md` before changing behavior; keep `README.md` user-facing and short.
 
+## workflow
+
+All changes go through a pull request — never commit directly to `main`. After a PR merges, add a `## <PR number> — <title> (YYYY-MM-DD)` entry to `CHANGELOG.md` via a follow-up PR. Keep entries short and factual.
+
 ## commands
 
 ```sh

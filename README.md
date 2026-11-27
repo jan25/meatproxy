@@ -2,7 +2,12 @@
 
 Thin wrapper around coding harnesses (OpenCode in v0) for **keyword session discovery** and **one git worktree per feature**.
 
-Requires Go 1.24+ and `opencode` on `PATH`. Install: `go install .`
+Requires Go 1.24+ and `opencode` on `PATH`.
+
+```sh
+./install.sh                             # builds and installs onto PATH
+# or: go install .                        # installs to ~/go/bin
+```
 
 ## Demo
 
