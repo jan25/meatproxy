@@ -192,10 +192,20 @@ func indexedMark(ok bool) string {
 }
 
 func truncate(s string, n int) string {
-	if len(s) <= n {
+	runes := []rune(s)
+	if len(runes) <= n {
 		return s
 	}
-	return s[:n-1] + "…"
+	return string(runes[:n-1]) + "…"
+}
+
+func wantsHelp(args []string) bool {
+	for _, a := range args {
+		if a == "-h" || a == "--help" {
+			return true
+		}
+	}
+	return false
 }
 
 func shortPath(p string) string {
@@ -209,14 +219,16 @@ func printMatches(matches []db.Match) {
 	for _, m := range matches {
 		fmt.Printf("%-7s %s  %s  %s%s\n",
 			ui.ShortRelTime(m.UpdatedAt), truncate(m.Title, 70), shortPath(m.ProjectDir),
-			dim(m.OCID), indexedMark(m.ContentIndexed))
+			m.OCID, indexedMark(m.ContentIndexed))
 	}
 }
 
-func dim(s string) string { return "  " + s } // mono output; kept simple for v0
-
 // cmdList implements `meatproxy list [keywords…]`.
 func cmdList(ctx context.Context, args []string) error {
+	if wantsHelp(args) {
+		usage()
+		return nil
+	}
 	deep, limit, keywords, err := parseArgs(args, true)
 	if err != nil {
 		return err
@@ -240,6 +252,10 @@ func cmdList(ctx context.Context, args []string) error {
 
 // cmdOpen implements `meatproxy open [keywords…]`.
 func cmdOpen(ctx context.Context, args []string) error {
+	if wantsHelp(args) {
+		usage()
+		return nil
+	}
 	deep, _, keywords, err := parseArgs(args, false)
 	if err != nil {
 		return err
@@ -278,6 +294,10 @@ func cmdOpen(ctx context.Context, args []string) error {
 
 // cmdNew implements `meatproxy new <feature>`.
 func cmdNew(ctx context.Context, args []string) error {
+	if wantsHelp(args) {
+		usage()
+		return nil
+	}
 	if len(args) != 1 || strings.TrimSpace(args[0]) == "" {
 		return fmt.Errorf("usage: meatproxy new <feature>")
 	}

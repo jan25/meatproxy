@@ -16,7 +16,7 @@ type Pickable interface {
 }
 
 // Pick shows a numbered list and returns the chosen index, or -1 if the user
-// chose nothing (empty input / EOF).
+// cancels. Invalid input is re-prompted up to three times.
 func Pick(items []Pickable) int {
 	if len(items) == 0 {
 		return -1
@@ -24,23 +24,27 @@ func Pick(items []Pickable) int {
 	for i, it := range items {
 		fmt.Printf("  %2d. %s\n", i+1, it.Label())
 	}
-	fmt.Print("number (enter to cancel): ")
 
 	reader := bufio.NewReader(os.Stdin)
-	line, err := reader.ReadString('\n')
-	if err != nil {
-		return -1
+	for attempt := 0; attempt < 3; attempt++ {
+		fmt.Println("number (enter to cancel):")
+		line, err := reader.ReadString('\n')
+		if err != nil && line == "" {
+			return -1
+		}
+		line = strings.TrimSpace(line)
+		if line == "" {
+			return -1
+		}
+		n, err := strconv.Atoi(line)
+		if err == nil && n >= 1 && n <= len(items) {
+			return n - 1
+		}
+		if attempt < 2 {
+			fmt.Printf("invalid choice (%q); try again\n", line)
+		}
 	}
-	line = strings.TrimSpace(line)
-	if line == "" {
-		return -1
-	}
-	n, err := strconv.Atoi(line)
-	if err != nil || n < 1 || n > len(items) {
-		fmt.Println("invalid choice")
-		return -1
-	}
-	return n - 1
+	return -1
 }
 
 // ShortRelTime renders an age like "2h ago" for list rows.
