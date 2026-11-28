@@ -8,6 +8,10 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #7 — README scoped to purpose and usage (2026-11-27)
+
+- README now covers only what the tool solves and how to use it; implementation details live in DESIGN.md.
+
 ## #6 — Session-only fallback outside git repos (2026-11-27)
 
 - `new` no longer errors outside a repo: it runs a session in the current directory and tracks the feature there for reruns.
