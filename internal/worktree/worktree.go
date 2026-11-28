@@ -1,5 +1,5 @@
-// Package worktree creates and reuses one git worktree per feature, at
-// <repo>/.worktrees/<feature> on branch mp/<feature>.
+// Package worktree creates and reuses one detached git worktree per feature,
+// at <repo>/.worktrees/<feature>. No branch is created.
 package worktree
 
 import (
@@ -17,13 +17,12 @@ import (
 
 const (
 	gitTimeout    = 30 * time.Second
-	branchPrefix  = "mp/"
 	worktreesName = ".worktrees"
 )
 
 var slugRe = regexp.MustCompile(`[^a-z0-9]+`)
 
-// Slug normalizes a feature name to a filesystem/branch-safe token.
+// Slug normalizes a feature name to a filesystem-safe token.
 func Slug(feature string) string {
 	s := slugRe.ReplaceAllString(strings.ToLower(strings.TrimSpace(feature)), "-")
 	s = strings.Trim(s, "-")
@@ -46,34 +45,24 @@ func RepoRoot(ctx context.Context, dir string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-// Ensure returns the worktree path for the feature, creating the branch and
-// worktree if needed, and reusing both when they already exist.
-func Ensure(ctx context.Context, repoRoot, slug string) (path, branch string, created bool, err error) {
+// Ensure returns the worktree path for the feature, creating a detached
+// worktree at the current HEAD if needed, and reusing it if it already exists.
+func Ensure(ctx context.Context, repoRoot, slug string) (path string, created bool, err error) {
 	path = filepath.Join(repoRoot, worktreesName, slug)
-	branch = branchPrefix + slug
 
 	if _, statErr := os.Stat(path); statErr == nil {
-		return path, branch, false, nil // reuse
+		return path, false, nil // reuse
 	}
 
 	if err := excludeWorktrees(repoRoot); err != nil {
 		logx.Warnf("could not update .git/info/exclude: %v", err)
 	}
 
-	// Does the branch already exist (worktree deleted, session continues)?
-	_, listErr := execx.Run(ctx, repoRoot, gitTimeout, "git", "rev-parse", "--verify", branch)
-	branchExists := listErr == nil
-
-	var args []string
-	if branchExists {
-		args = []string{"worktree", "add", path, branch}
-	} else {
-		args = []string{"worktree", "add", "-b", branch, path}
+	if _, err := execx.RunOK(ctx, repoRoot, gitTimeout,
+		"git", "worktree", "add", "--detach", path); err != nil {
+		return "", false, fmt.Errorf("create worktree %s: %w", path, err)
 	}
-	if _, err := execx.RunOK(ctx, repoRoot, gitTimeout, "git", args...); err != nil {
-		return "", "", false, fmt.Errorf("create worktree %s: %w", path, err)
-	}
-	return path, branch, true, nil
+	return path, true, nil
 }
 
 // excludeWorktrees adds .worktrees/ to .git/info/exclude so the worktrees
