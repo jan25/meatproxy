@@ -52,19 +52,19 @@ func main() {
 	case "help", "-h", "--help":
 		usage()
 	default:
-		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", os.Args[1])
+		fmt.Fprintf(os.Stderr, "%s unknown command %q\n\n", ui.Logo, os.Args[1])
 		usage()
 		os.Exit(2)
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
+		fmt.Fprintln(os.Stderr, ui.Logo, "error:", err)
 		logx.Errorf("command %s failed: %v", os.Args[1], err)
 		os.Exit(1)
 	}
 }
 
 func usage() {
-	fmt.Print(`meatproxy — session discovery + worktree-per-feature for OpenCode
+	fmt.Print(ui.Logo, ` meatproxy — session discovery + worktree-per-feature for OpenCode
 
 usage:
   meatproxy new <feature>     create or reuse a detached worktree
@@ -77,7 +77,7 @@ usage:
 flags:
   --deep                      block until all pending sessions are fully indexed
                               (without it, indexing continues in the background)
-  --limit N                   max results for list (default ` + fmt.Sprint(searchLimit) + `)
+  --limit N                   max results for list (default `+fmt.Sprint(searchLimit)+`)
 
 logging: ~/.meatproxy/logs (level via MEATPROXY_LOG=debug)
 `)
@@ -224,7 +224,7 @@ func shortPath(p string) string {
 
 func printMatches(matches []db.Match) {
 	for _, m := range matches {
-		fmt.Printf("%-7s %s  %s  %s%s\n",
+		ui.Printf("%-7s %s  %s  %s%s\n",
 			ui.ShortRelTime(m.UpdatedAt), truncate(m.Title, 70), shortPath(m.ProjectDir),
 			m.OCID, indexedMark(m.ContentIndexed))
 	}
@@ -250,7 +250,7 @@ func cmdList(ctx context.Context, args []string) error {
 		return err
 	}
 	if len(matches) == 0 {
-		fmt.Println("no matching sessions")
+		ui.Println("no matching sessions")
 		return nil
 	}
 	printMatches(matches)
@@ -295,7 +295,7 @@ func cmdOpen(ctx context.Context, args []string) error {
 		pick = matches[n]
 	}
 
-	fmt.Printf("resuming %s in %s\n", truncate(pick.Title, 60), shortPath(pick.ProjectDir))
+	ui.Printf("resuming %s in %s\n", truncate(pick.Title, 60), shortPath(pick.ProjectDir))
 	return oc.Resume(pick.ProjectDir, pick.OCID)
 }
 
@@ -350,17 +350,17 @@ func cmdNew(ctx context.Context, args []string) error {
 
 	switch {
 	case noRepo:
-		fmt.Printf("no git repository; using current directory for feature %q (no worktree)\n", slug)
+		ui.Printf("no git repository; using current directory for feature %q (no worktree)\n", slug)
 	case created:
-		fmt.Printf("worktree created: %s (detached HEAD)\n", path)
+		ui.Printf("worktree created: %s (detached HEAD)\n", path)
 	case !existed:
-		fmt.Printf("worktree reused: %s\n", path)
+		ui.Printf("worktree reused: %s\n", path)
 	}
 
 	// Resume the linked session when we have one and this is a rerun.
 	if feature.OCSessionID != "" {
 		if _, statErr := os.Stat(path); statErr == nil {
-			fmt.Printf("resuming session for feature %q\n", slug)
+			ui.Printf("resuming session for feature %q\n", slug)
 			return oc.Resume(path, feature.OCSessionID)
 		}
 	}
@@ -398,7 +398,7 @@ func linkSession(ctx context.Context, slug, repoRoot, path string) {
 		logx.Warnf("link session: %v", err)
 		return
 	}
-	fmt.Printf("linked session %s to feature %q\n", newest.ID, slug)
+	ui.Printf("linked session %s to feature %q\n", newest.ID, slug)
 }
 
 // cmdWorktreeOnly is a hidden helper used in development to verify worktree
@@ -429,6 +429,6 @@ func cmdWorktreeOnly(ctx context.Context, args []string) error {
 	if err := db.UpsertFeature(handle, feature); err != nil {
 		return err
 	}
-	fmt.Printf("slug=%s path=%s created=%v existed=%v\n", slug, filepath.Base(path), created, existed)
+	ui.Printf("slug=%s path=%s created=%v existed=%v\n", slug, filepath.Base(path), created, existed)
 	return nil
 }

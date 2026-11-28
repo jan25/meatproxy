@@ -48,6 +48,7 @@ Hidden commands used in development: `meatproxy __worktree <feature>` (ensure wo
 - Errors to stderr with context; never print raw subprocess output to the user except the TUI itself.
 - Log through `internal/logx`; use `MEATPROXY_LOG=debug` when diagnosing.
 - Keep hidden commands hidden and stable; scripts/tests may rely on them.
+- User-facing output lines are prefixed with the `🥩` logo via `ui.Printf` / `ui.Println` (`internal/ui/logo.go`).
 - Test harness flows with a stub `opencode` earlier on `PATH` (stub `session list --format json`, `session export`, and no-arg launch) — no real TUI in non-interactive tests.
 
 ## extension points
