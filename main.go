@@ -67,9 +67,9 @@ func usage() {
 	fmt.Print(`meatproxy — session discovery + worktree-per-feature for OpenCode
 
 usage:
-  meatproxy new <feature>     create or reuse a worktree (.worktrees/<feature>,
-                              branch mp/<feature>), launch opencode there, and
-                              link the session; rerun to resume it
+  meatproxy new <feature>     create or reuse a detached worktree
+                              (.worktrees/<feature>), launch opencode there,
+                              and link the session; rerun to resume it
   meatproxy list [keywords…]  search past sessions (title + message text);
                               no keywords lists recent sessions
   meatproxy open [keywords…]  search, pick, and resume a session in opencode
@@ -311,7 +311,7 @@ func cmdNew(ctx context.Context, args []string) error {
 		return fmt.Errorf("not inside a git repository")
 	}
 
-	path, branch, created, err := worktree.Ensure(ctx, repoRoot, slug)
+	path, created, err := worktree.Ensure(ctx, repoRoot, slug)
 	if err != nil {
 		return err
 	}
@@ -325,7 +325,7 @@ func cmdNew(ctx context.Context, args []string) error {
 		handle.Close()
 		return err
 	}
-	feature.Slug, feature.RepoRoot, feature.WorktreePath, feature.Branch = slug, repoRoot, path, branch
+	feature.Slug, feature.RepoRoot, feature.WorktreePath = slug, repoRoot, path
 	if err := db.UpsertFeature(handle, feature); err != nil {
 		handle.Close()
 		return err
@@ -334,9 +334,9 @@ func cmdNew(ctx context.Context, args []string) error {
 
 	switch {
 	case created:
-		fmt.Printf("worktree created: %s (branch %s)\n", path, branch)
+		fmt.Printf("worktree created: %s (detached HEAD)\n", path)
 	case !existed:
-		fmt.Printf("worktree reused: %s (branch %s)\n", path, branch)
+		fmt.Printf("worktree reused: %s\n", path)
 	}
 
 	// Resume the linked session when we have one and this is a rerun.
@@ -394,7 +394,7 @@ func cmdWorktreeOnly(ctx context.Context, args []string) error {
 	if err != nil || repoRoot == "" {
 		return fmt.Errorf("not inside a git repository")
 	}
-	path, branch, created, err := worktree.Ensure(ctx, repoRoot, slug)
+	path, created, err := worktree.Ensure(ctx, repoRoot, slug)
 	if err != nil {
 		return err
 	}
@@ -407,10 +407,10 @@ func cmdWorktreeOnly(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	feature.Slug, feature.RepoRoot, feature.WorktreePath, feature.Branch = slug, repoRoot, path, branch
+	feature.Slug, feature.RepoRoot, feature.WorktreePath = slug, repoRoot, path
 	if err := db.UpsertFeature(handle, feature); err != nil {
 		return err
 	}
-	fmt.Printf("slug=%s path=%s branch=%s created=%v existed=%v\n", slug, filepath.Base(path), branch, created, existed)
+	fmt.Printf("slug=%s path=%s created=%v existed=%v\n", slug, filepath.Base(path), created, existed)
 	return nil
 }

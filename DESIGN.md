@@ -24,7 +24,7 @@ main.go ──► indexer ──► oc ──► execx ──► opencode CLI
 
 - `sessions`: `oc_id`, `harness`, `title`, `project_dir`, created/updated (unix millis), `content_indexed`. Unique on `(harness, oc_id)`.
 - `sessions_fts`: FTS5 virtual table (`title`, `body`), rowid = `sessions.id`. Body is the concatenation of user prompts and assistant text parts from `opencode session export` (reasoning parts skipped).
-- `features`: `(slug, repo_root)` → worktree path, branch, linked `oc_session_id`.
+- `features`: `(slug, repo_root)` → worktree path, linked `oc_session_id`.
 - `schema_migrations`: versioned, append-only migrations; applied on every open.
 
 SQLite runs in WAL mode with a busy timeout so the index worker writes while commands read.
@@ -41,9 +41,9 @@ Search: FTS5 prefix query, all keywords ANDed, newest-first ordering. No keyword
 ## Worktree flow
 
 `meatproxy new <feature>`:
-- slugify name (`mp/<slug>` branch, `.worktrees/<slug>` path);
+- slugify name (`.worktrees/<slug>` path);
 - ensure `.git/info/exclude` contains `.worktrees/` (never modify `.gitignore`);
-- `git worktree add` with `-b` unless the branch already exists (then attach existing branch);
+- `git worktree add --detach` at the current HEAD — no branch is created;
 - upsert feature mapping; if a session is linked, resume it; otherwise launch a fresh `opencode` TUI in the worktree and, after it exits, link the newest session found there (best effort).
 
 `meatproxy open <keywords>` resumes in the session's recorded `project_dir` — for feature sessions that is the worktree path. The Go process execs the TUI; the calling shell's cwd is unchanged.

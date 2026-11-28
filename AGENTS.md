@@ -28,7 +28,7 @@ Hidden commands used in development: `meatproxy __worktree <feature>` (ensure wo
 | `internal/oc` | OpenCode CLI provider (list / export / resume / launch) |
 | `internal/indexer` | inline title sync, detached worker, flock lock |
 | `internal/execx` | **all** captured subprocesses: timeouts, kills, caps, logging |
-| `internal/worktree` | git worktree and branch create/reuse, `.git/info/exclude` |
+| `internal/worktree` | detached git worktree create/reuse, `.git/info/exclude` |
 | `internal/ui`, `internal/logx`, `internal/paths` | pick list, rotating logs, `~/.meatproxy` paths |
 
 ## invariants — do not break
@@ -40,7 +40,7 @@ Hidden commands used in development: `meatproxy __worktree <feature>` (ensure wo
 5. **OpenCode is the source of truth for sessions.** The DB is a cache; never treat it as authoritative enough to overwrite harness state.
 6. **`~/.meatproxy` is user data.** Never delete the DB, logs, or worktrees as a side effect of tests or cleanup. Test in a scratch git repo and scrub only test rows you inserted.
 7. Keyword search uses FTS5 prefix matching with AND; no keywords = recent sessions, newest first.
-8. Worktree paths are `<repo>/.worktrees/<slug>` with branch `mp/<slug>`; never touch the user's `.gitignore` (use `.git/info/exclude`).
+8. Worktree paths are `<repo>/.worktrees/<slug>` with detached HEAD — never create a branch; never touch the user's `.gitignore` (use `.git/info/exclude`).
 
 ## conventions
 

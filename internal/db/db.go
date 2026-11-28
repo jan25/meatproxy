@@ -30,7 +30,6 @@ type Feature struct {
 	Slug         string
 	RepoRoot     string
 	WorktreePath string
-	Branch       string
 	OCSessionID  string // empty until linked
 	CreatedAt    int64
 }
@@ -90,6 +89,19 @@ var migrations = []string{
 		created_at INTEGER NOT NULL,
 		PRIMARY KEY (slug, repo_root)
 	);`,
+	// 2: drop the unused branch column — worktrees are detached.
+	`CREATE TABLE features_v2 (
+		slug TEXT NOT NULL,
+		repo_root TEXT NOT NULL,
+		worktree_path TEXT NOT NULL,
+		oc_session_id TEXT NOT NULL DEFAULT '',
+		created_at INTEGER NOT NULL,
+		PRIMARY KEY (slug, repo_root)
+	);
+	INSERT INTO features_v2 (slug, repo_root, worktree_path, oc_session_id, created_at)
+		SELECT slug, repo_root, worktree_path, oc_session_id, created_at FROM features;
+	DROP TABLE features;
+	ALTER TABLE features_v2 RENAME TO features;`,
 }
 
 func migrate(handle *sql.DB) error {
@@ -229,22 +241,21 @@ func Search(handle *sql.DB, keywords []string, limit int) ([]Match, error) {
 
 // UpsertFeature creates or updates a feature mapping; pass ocSessionID to link.
 func UpsertFeature(handle *sql.DB, f Feature) error {
-	_, err := handle.Exec(`INSERT INTO features (slug, repo_root, worktree_path, branch, oc_session_id, created_at)
-		VALUES (?, ?, ?, ?, ?, ?)
+	_, err := handle.Exec(`INSERT INTO features (slug, repo_root, worktree_path, oc_session_id, created_at)
+		VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT (slug, repo_root) DO UPDATE SET
 			worktree_path = excluded.worktree_path,
-			branch = excluded.branch,
 			oc_session_id = CASE WHEN excluded.oc_session_id = '' THEN features.oc_session_id ELSE excluded.oc_session_id END`,
-		f.Slug, f.RepoRoot, f.WorktreePath, f.Branch, f.OCSessionID, time.Now().UnixMilli())
+		f.Slug, f.RepoRoot, f.WorktreePath, f.OCSessionID, time.Now().UnixMilli())
 	return err
 }
 
 // GetFeature looks up a feature by slug and repo root.
 func GetFeature(handle *sql.DB, slug, repoRoot string) (Feature, bool, error) {
 	var f Feature
-	err := handle.QueryRow(`SELECT slug, repo_root, worktree_path, branch, oc_session_id, created_at
+	err := handle.QueryRow(`SELECT slug, repo_root, worktree_path, oc_session_id, created_at
 		FROM features WHERE slug = ? AND repo_root = ?`, slug, repoRoot).
-		Scan(&f.Slug, &f.RepoRoot, &f.WorktreePath, &f.Branch, &f.OCSessionID, &f.CreatedAt)
+		Scan(&f.Slug, &f.RepoRoot, &f.WorktreePath, &f.OCSessionID, &f.CreatedAt)
 	if err == sql.ErrNoRows {
 		return Feature{}, false, nil
 	}
@@ -256,7 +267,7 @@ func GetFeature(handle *sql.DB, slug, repoRoot string) (Feature, bool, error) {
 
 // FeaturesByRoot returns every feature mapping recorded for a repo root.
 func FeaturesByRoot(handle *sql.DB, repoRoot string) ([]Feature, error) {
-	rows, err := handle.Query(`SELECT slug, repo_root, worktree_path, branch, oc_session_id, created_at
+	rows, err := handle.Query(`SELECT slug, repo_root, worktree_path, oc_session_id, created_at
 		FROM features WHERE repo_root = ? ORDER BY created_at DESC`, repoRoot)
 	if err != nil {
 		return nil, err
@@ -265,7 +276,7 @@ func FeaturesByRoot(handle *sql.DB, repoRoot string) ([]Feature, error) {
 	var out []Feature
 	for rows.Next() {
 		var f Feature
-		if err := rows.Scan(&f.Slug, &f.RepoRoot, &f.WorktreePath, &f.Branch, &f.OCSessionID, &f.CreatedAt); err != nil {
+		if err := rows.Scan(&f.Slug, &f.RepoRoot, &f.WorktreePath, &f.OCSessionID, &f.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, f)

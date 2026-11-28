@@ -8,6 +8,11 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #4 — Detached worktrees and system install (2026-11-27)
+
+- Worktrees are created with detached HEAD; no `mp/*` branch is created. Existing feature DB rows migrate automatically (schema v2 drops the branch column).
+- `install.sh` installs to a default system PATH directory and adds an `mp` alias only if none exists.
+
 ## #3 — Fix changelog prior-history note (2026-11-27)
 
 - Replace outdated PR range in the prior-history note with a plain description.
