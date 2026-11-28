@@ -8,6 +8,12 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #9 — One-line remote install (2026-11-27)
+
+- Module path changed to `github.com/jan25/meatproxy`; `install.sh` supports `curl -fsSL .../install.sh | sh` by installing the published Go module when no local source exists.
+- README install instructions updated to use the script URL instead of a clone.
+- Add `meatproxy update` to download and run the published install script locally.
+
 ## #8 — Steak logo on output lines (2026-11-27)
 
 - Add 🥩 as the tool logo; user-facing output lines are prefixed with it via `internal/ui`.

@@ -14,13 +14,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
-	"meatproxy/internal/db"
-	"meatproxy/internal/indexer"
-	"meatproxy/internal/logx"
-	"meatproxy/internal/oc"
-	"meatproxy/internal/ui"
-	"meatproxy/internal/worktree"
+	"github.com/jan25/meatproxy/internal/db"
+	"github.com/jan25/meatproxy/internal/execx"
+	"github.com/jan25/meatproxy/internal/indexer"
+	"github.com/jan25/meatproxy/internal/logx"
+	"github.com/jan25/meatproxy/internal/oc"
+	"github.com/jan25/meatproxy/internal/ui"
+	"github.com/jan25/meatproxy/internal/worktree"
 )
 
 const searchLimit = 40
@@ -43,6 +45,8 @@ func main() {
 		err = cmdList(ctx, os.Args[2:])
 	case "open":
 		err = cmdOpen(ctx, os.Args[2:])
+	case "update":
+		err = cmdUpdate(ctx, os.Args[2:])
 	case "__index-worker": // hidden: detached background content indexer
 		logx.Close()
 		logx.Init("index-worker")
@@ -74,6 +78,8 @@ usage:
                               no keywords lists recent sessions
   meatproxy open [keywords…]  search, pick, and resume a session in opencode
 
+  meatproxy update            download and run the latest install.sh
+
 flags:
   --deep                      block until all pending sessions are fully indexed
                               (without it, indexing continues in the background)
@@ -81,6 +87,51 @@ flags:
 
 logging: ~/.meatproxy/logs (level via MEATPROXY_LOG=debug)
 `)
+}
+
+const installScriptURL = "https://raw.githubusercontent.com/jan25/meatproxy/main/install.sh"
+
+// cmdUpdate downloads the published install.sh and runs it from a neutral
+// directory so the CLI is refreshed from GitHub, not from a local checkout.
+func cmdUpdate(ctx context.Context, args []string) error {
+	if wantsHelp(args) {
+		usage()
+		return nil
+	}
+	if len(args) != 0 {
+		return fmt.Errorf("usage: meatproxy update")
+	}
+
+	url := os.Getenv("MEATPROXY_INSTALL_URL")
+	if url == "" {
+		url = installScriptURL
+	}
+	script, err := execx.RunOK(ctx, "", time.Minute, "curl", "-fsSL", url)
+	if err != nil {
+		return fmt.Errorf("download install.sh: %w", err)
+	}
+	if len(script) == 0 {
+		return fmt.Errorf("empty install script from %s", url)
+	}
+
+	dir, err := os.MkdirTemp("", "meatproxy-update-")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir)
+	path := filepath.Join(dir, "install.sh")
+	if err := os.WriteFile(path, script, 0o700); err != nil {
+		return err
+	}
+
+	res, err := execx.Run(ctx, dir, 5*time.Minute, "sh", path)
+	os.Stdout.Write(res.Stdout)
+	os.Stderr.Write(res.Stderr)
+	if err != nil {
+		return fmt.Errorf("install.sh failed: %w", err)
+	}
+	ui.Println("updated to the latest version")
+	return nil
 }
 
 // syncAndIndex performs the implicit sync: inline title sync (never stale

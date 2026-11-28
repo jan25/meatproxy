@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"meatproxy/internal/logx"
+	"github.com/jan25/meatproxy/internal/logx"
 )
 
 const outputCap = 1 << 20 // keep the last 1MB of any stream

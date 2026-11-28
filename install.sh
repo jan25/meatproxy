@@ -1,11 +1,18 @@
 #!/bin/sh
 # Build and install meatproxy, with an `mp` alias if none exists.
 #
-#   ./install.sh                       # install to a default PATH directory
+#   curl -fsSL https://raw.githubusercontent.com/jan25/meatproxy/main/install.sh | sh
+#   ./install.sh                       # from a local clone
 #   MEATPROXY_INSTALL_DIR=~/bin ./install.sh
 set -eu
 
-cd "$(dirname "$0")"
+local_src=no
+scriptdir=$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd) || scriptdir=""
+if [ -n "$scriptdir" ] && [ -f "$scriptdir/go.mod" ] &&
+	grep -q 'module github.com/jan25/meatproxy' "$scriptdir/go.mod"; then
+	local_src=yes
+	cd "$scriptdir"
+fi
 
 if ! command -v go >/dev/null 2>&1; then
 	echo "error: go is required (Go 1.24+)" >&2
@@ -43,7 +50,16 @@ else
 fi
 
 bin="$destdir/meatproxy"
-go build -o "$bin" .
+if [ "$local_src" = yes ]; then
+	go build -o "$bin" .
+else
+	# Piped from a URL (no local source): install the published Go module.
+	echo "installing github.com/jan25/meatproxy@latest"
+	gobin=$(go env GOBIN)
+	[ -n "$gobin" ] || gobin="$(go env GOPATH)/bin"
+	go install github.com/jan25/meatproxy@latest
+	cp "$gobin/meatproxy" "$bin"
+fi
 echo "installed: $bin"
 
 # Refresh the standard Go bin too, so old installs on PATH get the new binary.

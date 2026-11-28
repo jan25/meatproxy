@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"meatproxy/internal/paths"
+	"github.com/jan25/meatproxy/internal/paths"
 
 	_ "modernc.org/sqlite"
 )
