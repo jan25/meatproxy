@@ -52,7 +52,7 @@ Outside a git repo, `new` skips worktree creation and runs a session in the curr
 
 ## Install and local state
 
-Requires Go 1.24+ and `opencode` on `PATH` (no cgo toolchain). The module path is `github.com/jan25/meatproxy`, so `go install github.com/jan25/meatproxy@latest` works from anywhere. `install.sh` can be piped from GitHub raw: it detects that no local source is present and installs the published module, then builds into the first writable standard PATH directory (`/usr/local/bin`, `/opt/homebrew/bin`, `~/.local/bin`, `~/go/bin`), refreshes `~/go/bin/meatproxy` so older installs get the new binary, and adds `alias mp='meatproxy'` to the shell rc file only if no `mp` alias exists. `MEATPROXY_INSTALL_DIR` overrides the target.
+Requires Go 1.26+ and `opencode` on `PATH` (no cgo toolchain). The module path is `github.com/jan25/meatproxy`, so `go install github.com/jan25/meatproxy@latest` works from anywhere. `install.sh` can be piped from GitHub raw: it detects that no local source is present and installs the published module, then builds into the first writable standard PATH directory (`/usr/local/bin`, `/opt/homebrew/bin`, `~/.local/bin`, `~/go/bin`), refreshes `~/go/bin/meatproxy` so older installs get the new binary, and adds `alias mp='meatproxy'` to the shell rc file only if no `mp` alias exists. `MEATPROXY_INSTALL_DIR` overrides the target.
 
 | Path | Contents |
 |---|---|

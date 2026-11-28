@@ -8,6 +8,11 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #10 — Install fallback and Go version (2026-11-28)
+
+- `install.sh` falls back to `GOPROXY=direct` if the module proxy serves a stale `@latest`.
+- Documented Go 1.26+ requirement to match `go.mod`.
+
 ## #9 — One-line remote install (2026-11-27)
 
 - Module path changed to `github.com/jan25/meatproxy`; `install.sh` supports `curl -fsSL .../install.sh | sh` by installing the published Go module when no local source exists.
