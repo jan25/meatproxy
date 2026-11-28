@@ -1,18 +1,12 @@
 # meatproxy
 
-Sessions from coding harnesses accumulate fast, and finding the one where you solved a specific problem usually means scrolling through names. Switching between parallel features has the same problem: manually creating worktrees and remembering which session belongs to which one.
+Sessions from coding harnesses pile up, and finding the one where you solved a specific problem usually means scrolling through names. Working on parallel features has the same friction: creating worktrees by hand and remembering which session belongs to which.
 
-meatproxy fixes both: it makes past sessions searchable by keyword and bundles each feature into its own detached worktree with a linked session.
+meatproxy makes past sessions searchable by keyword and pairs each feature with its own worktree and session.
 
-## How it works, at a glance
+Requires Go 1.24+ and `opencode` on `PATH`. Run `./install.sh` to install the CLI and add an `mp` alias.
 
-- `opencode` remains the source of truth for sessions. meatproxy reads its session list and transcripts, keeps a local SQLite full-text index, and searches that index by keyword. Indexing happens in the background, so commands stay fast.
-- `new <feature>` creates a worktree at `.worktrees/<feature>` (detached HEAD — no branch), launches `opencode` there, and remembers the session. Rerunning it resumes the same worktree and session.
-- `list` finds sessions by title or message text; `open` resumes the chosen session in its original directory.
-
-Requires Go 1.24+ and `opencode` on `PATH`. `./install.sh` installs the CLI on PATH and adds an `mp` alias if you don't already have one.
-
-## Demo
+## Usage
 
 ```sh
 $ mp new auth-refresh                  # start a feature in its own worktree
@@ -36,8 +30,6 @@ number (enter to cancel): 2
 $ mp list --deep "old bug"             # wait for full-text indexing before searching
 ```
 
-Outside a git repo, `mp new <feature>` starts a session in the current directory instead — no worktree, no error; rerunning resumes it.
-
 `list` with no keywords shows recent sessions. Flags (`--deep`, `--limit N` / `-n`) work before or after keywords.
 
-Implementation details — storage, sync mechanics, subprocess safety, schema, and extension points — are in [DESIGN.md](DESIGN.md). Contributor rules are in [AGENTS.md](AGENTS.md).
+Details: [DESIGN.md](DESIGN.md). Contributor rules: [AGENTS.md](AGENTS.md).
