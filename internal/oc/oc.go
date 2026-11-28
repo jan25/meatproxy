@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"time"
 
-	"meatproxy/internal/execx"
+	"github.com/jan25/meatproxy/internal/execx"
 )
 
 const (

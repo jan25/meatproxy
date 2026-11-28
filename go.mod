@@ -1,4 +1,4 @@
-module meatproxy
+module github.com/jan25/meatproxy
 
 go 1.26.0
 

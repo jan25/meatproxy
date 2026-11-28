@@ -14,11 +14,11 @@ import (
 	"syscall"
 	"time"
 
-	"meatproxy/internal/db"
-	"meatproxy/internal/logx"
-	"meatproxy/internal/oc"
-	"meatproxy/internal/paths"
-	"meatproxy/internal/ui"
+	"github.com/jan25/meatproxy/internal/db"
+	"github.com/jan25/meatproxy/internal/logx"
+	"github.com/jan25/meatproxy/internal/oc"
+	"github.com/jan25/meatproxy/internal/paths"
+	"github.com/jan25/meatproxy/internal/ui"
 )
 
 const (

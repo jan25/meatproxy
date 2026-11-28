@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"meatproxy/internal/paths"
+	"github.com/jan25/meatproxy/internal/paths"
 )
 
 type Level int

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"meatproxy/internal/execx"
-	"meatproxy/internal/logx"
+	"github.com/jan25/meatproxy/internal/execx"
+	"github.com/jan25/meatproxy/internal/logx"
 )
 
 const (

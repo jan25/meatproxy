@@ -4,7 +4,13 @@ Sessions from coding harnesses pile up, and finding the one where you solved a s
 
 meatproxy makes past sessions searchable by keyword and pairs each feature with its own worktree and session.
 
-Requires Go 1.24+ and `opencode` on `PATH`. Run `./install.sh` to install the CLI and add an `mp` alias.
+Requires Go 1.24+ and `opencode` on `PATH`. Install with the script (it also adds an `mp` alias):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/jan25/meatproxy/main/install.sh | sh
+```
+
+From a local clone, run `./install.sh` instead.
 
 ## Usage
 
@@ -28,6 +34,9 @@ $ mp open auth                         # several matches → numbered pick list
 🥩 number (enter to cancel): 2
 
 $ mp list --deep "old bug"             # wait for full-text indexing before searching
+
+$ mp update                            # refresh the CLI from the published install script
+🥩 updated to the latest version
 ```
 
 `list` with no keywords shows recent sessions. Flags (`--deep`, `--limit N` / `-n`) work before or after keywords.

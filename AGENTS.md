@@ -45,6 +45,7 @@ Hidden commands used in development: `meatproxy __worktree <feature>` (ensure wo
 ## conventions
 
 - Standard library first; only extra dependency is `modernc.org/sqlite` (pure Go, no cgo). Do not add cgo SQLite.
+- Module path is `github.com/jan25/meatproxy`; keep internal imports on that path so remote `go install ...@latest` works.
 - Errors to stderr with context; never print raw subprocess output to the user except the TUI itself.
 - Log through `internal/logx`; use `MEATPROXY_LOG=debug` when diagnosing.
 - Keep hidden commands hidden and stable; scripts/tests may rely on them.
