@@ -4,7 +4,7 @@ Sessions from coding harnesses pile up, and finding the one where you solved a s
 
 meatproxy makes past sessions searchable by keyword and pairs each feature with its own worktree and session.
 
-Requires Go 1.24+ and `opencode` on `PATH`. Install with the script (it also adds an `mp` alias):
+Requires Go 1.26+ and `opencode` on `PATH`. Install with the script (it also adds an `mp` alias):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/jan25/meatproxy/main/install.sh | sh

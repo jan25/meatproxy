@@ -15,7 +15,7 @@ if [ -n "$scriptdir" ] && [ -f "$scriptdir/go.mod" ] &&
 fi
 
 if ! command -v go >/dev/null 2>&1; then
-	echo "error: go is required (Go 1.24+)" >&2
+	echo "error: go is required (Go 1.26+)" >&2
 	exit 1
 fi
 
@@ -57,7 +57,9 @@ else
 	echo "installing github.com/jan25/meatproxy@latest"
 	gobin=$(go env GOBIN)
 	[ -n "$gobin" ] || gobin="$(go env GOPATH)/bin"
-	go install github.com/jan25/meatproxy@latest
+	# The module proxy can serve a stale @latest; fall back to direct git.
+	go install github.com/jan25/meatproxy@latest ||
+		GOPROXY=direct go install github.com/jan25/meatproxy@latest
 	cp "$gobin/meatproxy" "$bin"
 fi
 echo "installed: $bin"
