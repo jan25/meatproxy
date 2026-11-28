@@ -40,7 +40,7 @@ Hidden commands used in development: `meatproxy __worktree <feature>` (ensure wo
 5. **OpenCode is the source of truth for sessions.** The DB is a cache; never treat it as authoritative enough to overwrite harness state.
 6. **`~/.meatproxy` is user data.** Never delete the DB, logs, or worktrees as a side effect of tests or cleanup. Test in a scratch git repo and scrub only test rows you inserted.
 7. Keyword search uses FTS5 prefix matching with AND; no keywords = recent sessions, newest first.
-8. Worktree paths are `<repo>/.worktrees/<slug>` with detached HEAD — never create a branch; never touch the user's `.gitignore` (use `.git/info/exclude`).
+8. Worktree paths are `<repo>/.worktrees/<slug>` with detached HEAD — never create a branch; never touch the user's `.gitignore` (use `.git/info/exclude`). Outside a git repo, `new` runs session-only in the current directory and must not error.
 
 ## conventions
 
