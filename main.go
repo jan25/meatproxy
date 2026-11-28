@@ -113,18 +113,25 @@ func syncAndIndex(ctx context.Context, deep bool) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Worktree sessions belong to their own opencode project; sync those too.
-	features, err := db.FeaturesByRoot(handle, root)
-	if err != nil {
-		handle.Close()
-		return nil, err
-	}
-	for _, f := range features {
-		if _, statErr := os.Stat(f.WorktreePath); statErr != nil {
-			continue
+	// Feature directories are their own opencode projects; sync those too.
+	seen := map[string]bool{}
+	for _, scope := range scopes {
+		features, err := db.FeaturesByRoot(handle, scope)
+		if err != nil {
+			handle.Close()
+			return nil, err
 		}
-		if err := indexer.SyncTitles(ctx, f.WorktreePath); err != nil {
-			logx.Warnf("title sync for %s: %v", f.WorktreePath, err)
+		for _, f := range features {
+			if seen[f.WorktreePath] {
+				continue
+			}
+			seen[f.WorktreePath] = true
+			if _, statErr := os.Stat(f.WorktreePath); statErr != nil {
+				continue
+			}
+			if err := indexer.SyncTitles(ctx, f.WorktreePath); err != nil {
+				logx.Warnf("title sync for %s: %v", f.WorktreePath, err)
+			}
 		}
 	}
 
@@ -306,14 +313,23 @@ func cmdNew(ctx context.Context, args []string) error {
 		return fmt.Errorf("feature name must contain letters or digits")
 	}
 
+	// Outside a git repo there is no worktree to create: run a session in the
+	// current directory and track the feature there instead.
 	repoRoot, err := worktree.RepoRoot(ctx, ".")
-	if err != nil || repoRoot == "" {
-		return fmt.Errorf("not inside a git repository")
-	}
-
-	path, created, err := worktree.Ensure(ctx, repoRoot, slug)
-	if err != nil {
-		return err
+	noRepo := err != nil || repoRoot == ""
+	var path string
+	var created bool
+	if noRepo {
+		path, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+		repoRoot = path
+	} else {
+		path, created, err = worktree.Ensure(ctx, repoRoot, slug)
+		if err != nil {
+			return err
+		}
 	}
 
 	handle, err := db.Open()
@@ -333,6 +349,8 @@ func cmdNew(ctx context.Context, args []string) error {
 	handle.Close()
 
 	switch {
+	case noRepo:
+		fmt.Printf("no git repository; using current directory for feature %q (no worktree)\n", slug)
 	case created:
 		fmt.Printf("worktree created: %s (detached HEAD)\n", path)
 	case !existed:

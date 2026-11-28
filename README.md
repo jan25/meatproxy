@@ -36,6 +36,8 @@ number (enter to cancel): 2
 $ mp list --deep "old bug"             # wait for full-text indexing before searching
 ```
 
+Outside a git repo, `mp new <feature>` starts a session in the current directory instead — no worktree, no error; rerunning resumes it.
+
 `list` with no keywords shows recent sessions. Flags (`--deep`, `--limit N` / `-n`) work before or after keywords.
 
 Implementation details — storage, sync mechanics, subprocess safety, schema, and extension points — are in [DESIGN.md](DESIGN.md). Contributor rules are in [AGENTS.md](AGENTS.md).

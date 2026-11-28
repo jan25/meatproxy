@@ -48,7 +48,7 @@ Search: FTS5 prefix query, all keywords ANDed, newest-first ordering. No keyword
 
 `meatproxy open <keywords>` resumes in the session's recorded `project_dir` — for feature sessions that is the worktree path. The Go process execs the TUI; the calling shell's cwd is unchanged.
 
-`new` requires the current directory to be inside a git repository; otherwise it exits with `not inside a git repository`. `list` and `open` work outside repos too (they search sessions synced from the current directory).
+Outside a git repo, `new` skips worktree creation and runs a session in the current directory, tracking the feature there so a rerun resumes the same session. `list` and `open` work outside repos too (they search sessions synced from the current directory).
 
 ## Install and local state
 

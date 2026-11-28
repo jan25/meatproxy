@@ -8,6 +8,11 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #6 — Session-only fallback outside git repos (2026-11-27)
+
+- `new` no longer errors outside a repo: it runs a session in the current directory and tracks the feature there for reruns.
+- Feature directories are synced for all scopes, including directory-scoped features outside repos.
+
 ## #5 — Detached worktrees, system install, README restructure (2026-11-27)
 
 - Worktrees are created with detached HEAD; no branch is created. Schema v2 drops the branch column; v3 restores it as empty so older binaries keep working.
