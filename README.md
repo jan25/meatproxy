@@ -1,44 +1,41 @@
 # meatproxy
 
-Thin wrapper around coding harnesses (OpenCode in v0) for **keyword session discovery** and **one git worktree per feature**.
+Sessions from coding harnesses accumulate fast, and finding the one where you solved a specific problem usually means scrolling through names. Switching between parallel features has the same problem: manually creating worktrees and remembering which session belongs to which one.
 
-Requires Go 1.24+ and `opencode` on `PATH`.
+meatproxy fixes both: it makes past sessions searchable by keyword and bundles each feature into its own detached worktree with a linked session.
 
-```sh
-./install.sh                             # installs to a default PATH dir and adds `mp` alias
-# or: go install .                        # installs to ~/go/bin, no alias
-```
+## How it works, at a glance
+
+- `opencode` remains the source of truth for sessions. meatproxy reads its session list and transcripts, keeps a local SQLite full-text index, and searches that index by keyword. Indexing happens in the background, so commands stay fast.
+- `new <feature>` creates a worktree at `.worktrees/<feature>` (detached HEAD — no branch), launches `opencode` there, and remembers the session. Rerunning it resumes the same worktree and session.
+- `list` finds sessions by title or message text; `open` resumes the chosen session in its original directory.
+
+Requires Go 1.24+ and `opencode` on `PATH`. `./install.sh` installs the CLI on PATH and adds an `mp` alias if you don't already have one.
 
 ## Demo
 
 ```sh
-$ cd ~/code/myapp
-
-$ mp new auth-refresh                 # creates detached worktree, launches opencode
+$ mp new auth-refresh                  # start a feature in its own worktree
 worktree created: .worktrees/auth-refresh (detached HEAD)
 linked session ses_abc123 to feature "auth-refresh"
 
-$ meatproxy new auth-refresh          # rerun: reuses worktree, resumes its session
+$ mp new auth-refresh                  # come back to the same feature
 resuming session for feature "auth-refresh"
 
-$ meatproxy list rate limit           # keyword search (prefix match, AND across words)
+$ mp list rate limit                   # find a past session by keyword
 2h      Fix rate limit headers  ~/code/myapp    ses_abc123
 
-$ meatproxy open rate                  # unique match resumes directly; multiple → pick list
+$ mp open rate                         # one match resumes it directly
 resuming Fix rate limit headers in .worktrees/auth-refresh
 
-$ meatproxy list --deep "old bug"      # block until all message text is indexed
+$ mp open auth                         # several matches → numbered pick list
+  1. 2h      Fix rate limit headers  [~/code/myapp]
+  2. 3d      Auth refresh work       [~/code/myapp/.worktrees/auth]
+number (enter to cancel): 2
+
+$ mp list --deep "old bug"             # wait for full-text indexing before searching
 ```
 
-`list` with no keywords shows recent sessions. Flags (`--deep`, `--limit N` / `-n`) work before or after keywords. Logs: `~/.meatproxy/logs/` (`MEATPROXY_LOG=debug`).
+`list` with no keywords shows recent sessions. Flags (`--deep`, `--limit N` / `-n`) work before or after keywords.
 
-## How it works
-
-- Titles sync inline per command (~100ms); message text is indexed by a detached background worker using SQLite WAL. `--deep` is the only blocking path. Newly found sessions show `(title-only)` until indexed.
-- Worktrees live at `<repo>/.worktrees/<feature>` with detached HEAD — no branch is created. `.worktrees/` is excluded via `.git/info/exclude` (your `.gitignore` is untouched).
-- State: `~/.meatproxy/meatproxy.db` (sessions, FTS5 index, worktree map). Logs older than 7 days or over 50MB are pruned automatically.
-- All captured subprocesses use hardened timeouts, process-group kills, output caps, and logging; the interactive TUI is exempt.
-
-Details for future contributors: [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md).
-
-v0 limits: OpenCode only, no config file, no worktree cleanup/merge commands.
+Implementation details — storage, sync mechanics, subprocess safety, schema, and extension points — are in [DESIGN.md](DESIGN.md). Contributor rules are in [AGENTS.md](AGENTS.md).

@@ -24,7 +24,7 @@ main.go ──► indexer ──► oc ──► execx ──► opencode CLI
 
 - `sessions`: `oc_id`, `harness`, `title`, `project_dir`, created/updated (unix millis), `content_indexed`. Unique on `(harness, oc_id)`.
 - `sessions_fts`: FTS5 virtual table (`title`, `body`), rowid = `sessions.id`. Body is the concatenation of user prompts and assistant text parts from `opencode session export` (reasoning parts skipped).
-- `features`: `(slug, repo_root)` → worktree path, linked `oc_session_id`.
+- `features`: `(slug, repo_root)` → worktree path, linked `oc_session_id`. A legacy empty `branch` column is kept (schema v3) so older binaries can still read the table.
 - `schema_migrations`: versioned, append-only migrations; applied on every open.
 
 SQLite runs in WAL mode with a busy timeout so the index worker writes while commands read.
@@ -47,6 +47,21 @@ Search: FTS5 prefix query, all keywords ANDed, newest-first ordering. No keyword
 - upsert feature mapping; if a session is linked, resume it; otherwise launch a fresh `opencode` TUI in the worktree and, after it exits, link the newest session found there (best effort).
 
 `meatproxy open <keywords>` resumes in the session's recorded `project_dir` — for feature sessions that is the worktree path. The Go process execs the TUI; the calling shell's cwd is unchanged.
+
+`new` requires the current directory to be inside a git repository; otherwise it exits with `not inside a git repository`. `list` and `open` work outside repos too (they search sessions synced from the current directory).
+
+## Install and local state
+
+`install.sh` builds the binary into the first writable standard PATH directory (`/usr/local/bin`, `/opt/homebrew/bin`, `~/.local/bin`, `~/go/bin`), refreshes `~/go/bin/meatproxy` so older installs get the new binary, and adds `alias mp='meatproxy'` to the shell rc file only if no `mp` alias exists. `MEATPROXY_INSTALL_DIR` overrides the target.
+
+| Path | Contents |
+|---|---|
+| `~/.meatproxy/meatproxy.db` | sessions, FTS5 index, feature↔worktree↔session map |
+| `~/.meatproxy/logs/meatproxy-YYYYMMDD.log` | command log (subprocess calls, timings, errors) |
+| `~/.meatproxy/logs/index-worker-YYYYMMDD.log` | background indexer log |
+| `~/.meatproxy/index.lock` | flock preventing concurrent index workers |
+
+Logs older than 7 days, or oldest-first beyond 50MB total, are pruned on every start.
 
 ## Boundaries and safety
 

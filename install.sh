@@ -45,6 +45,13 @@ fi
 bin="$destdir/meatproxy"
 go build -o "$bin" .
 echo "installed: $bin"
+
+# Refresh the standard Go bin too, so old installs on PATH get the new binary.
+gobin="$HOME/go/bin/meatproxy"
+if [ "$gobin" != "$bin" ] && [ -d "$(dirname "$gobin")" ]; then
+	cp "$bin" "$gobin"
+	echo "refreshed: $gobin"
+fi
 if ! on_path "$destdir"; then
 	echo "add $destdir to your PATH to use 'meatproxy' directly"
 fi

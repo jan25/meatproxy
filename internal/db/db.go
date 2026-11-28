@@ -102,6 +102,9 @@ var migrations = []string{
 		SELECT slug, repo_root, worktree_path, oc_session_id, created_at FROM features;
 	DROP TABLE features;
 	ALTER TABLE features_v2 RENAME TO features;`,
+	// 3: keep the branch column for compatibility with older binaries that
+	// still query it. New code never reads or writes it.
+	`ALTER TABLE features ADD COLUMN branch TEXT NOT NULL DEFAULT '';`,
 }
 
 func migrate(handle *sql.DB) error {

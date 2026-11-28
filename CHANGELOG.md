@@ -8,10 +8,15 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
-## #4 — Detached worktrees and system install (2026-11-27)
+## #5 — Detached worktrees, system install, README restructure (2026-11-27)
 
-- Worktrees are created with detached HEAD; no `mp/*` branch is created. Existing feature DB rows migrate automatically (schema v2 drops the branch column).
-- `install.sh` installs to a default system PATH directory and adds an `mp` alias only if none exists.
+- Worktrees are created with detached HEAD; no branch is created. Schema v2 drops the branch column; v3 restores it as empty so older binaries keep working.
+- `install.sh` installs to a default system PATH directory, refreshes `~/go/bin/meatproxy`, and adds an `mp` alias only if none exists.
+- README now covers the problem, high-level workflow, and real usage; implementation notes moved to `DESIGN.md`.
+
+## #4 — Empty merge (2026-11-27)
+
+- No code changed; a push from the wrong worktree merged an empty squash commit. Changes landed in #5.
 
 ## #3 — Fix changelog prior-history note (2026-11-27)
 
