@@ -8,6 +8,10 @@ Entries are added when pull requests merge, newest first. Format:
 - change
 ```
 
+## #8 — Steak logo on output lines (2026-11-27)
+
+- Add 🥩 as the tool logo; user-facing output lines are prefixed with it via `internal/ui`.
+
 ## #7 — README scoped to purpose and usage (2026-11-27)
 
 - README now covers only what the tool solves and how to use it; implementation details live in DESIGN.md.

@@ -22,12 +22,12 @@ func Pick(items []Pickable) int {
 		return -1
 	}
 	for i, it := range items {
-		fmt.Printf("  %2d. %s\n", i+1, it.Label())
+		Printf("  %2d. %s\n", i+1, it.Label())
 	}
 
 	reader := bufio.NewReader(os.Stdin)
 	for attempt := 0; attempt < 3; attempt++ {
-		fmt.Println("number (enter to cancel):")
+		Println("number (enter to cancel):")
 		line, err := reader.ReadString('\n')
 		if err != nil && line == "" {
 			return -1
@@ -41,7 +41,7 @@ func Pick(items []Pickable) int {
 			return n - 1
 		}
 		if attempt < 2 {
-			fmt.Printf("invalid choice (%q); try again\n", line)
+			Printf("invalid choice (%q); try again\n", line)
 		}
 	}
 	return -1

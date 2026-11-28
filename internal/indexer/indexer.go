@@ -18,6 +18,7 @@ import (
 	"meatproxy/internal/logx"
 	"meatproxy/internal/oc"
 	"meatproxy/internal/paths"
+	"meatproxy/internal/ui"
 )
 
 const (
@@ -93,7 +94,7 @@ func DeepIndex() error {
 	if pending == 0 {
 		return nil
 	}
-	fmt.Fprintf(os.Stderr, "deep indexing %d sessions…\n", pending)
+	fmt.Fprintf(os.Stderr, "%s deep indexing %d sessions…\n", ui.Logo, pending)
 	return runWorker(false)
 }
 
